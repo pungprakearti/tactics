@@ -13,6 +13,7 @@ class Tactics {
     this.makeBoardJS();
     this.makeChars();
     this.placeCharsHTML();
+    this.test();
   }
 
   //create HTML game grid and runs the function to create the JS board.
@@ -61,16 +62,16 @@ class Tactics {
   //creates characters on HTML board using coordinates from DPSpos,
   //  TANKpos, and HEALpos.
   placeCharsHTML() {
-    let charNamesToRemove = ['DPS', 'TANK', 'HEAL'];
+    let charNames = ['DPS', 'TANK', 'HEAL'];
     let charsPOS = [this.DPSpos, this.TANKpos, this.HEALpos];
     let posOnBoard;
-    for (let i = 0; i < chars.length; i++) {
+    for (let i = 0; i < charNames.length; i++) {
       //remove current char
-      $(`.${charNamesToRemove[i]}`).remove();
+      $(`.${charNames[i]}`).remove();
 
       //append char to correct position on the board
       posOnBoard = `#${charsPOS[i][0]}-${charsPOS[i][1]}`;
-      $(posOnBoard).append($('<div>').attr('class', chars[i]));
+      $(posOnBoard).append($('<div>').attr('class', charNames[i]));
     }
   }
 
@@ -79,7 +80,13 @@ class Tactics {
 
   //test with hover to highlight cell
   test() {
-    $('.board').on('mouseover', 'td', function() {});
+    $('.board')
+      .on('mouseenter', 'td', function(event) {
+        $(event.target).attr('bgcolor', 'orange');
+      })
+      .on('mouseleave', 'td', function(event) {
+        $(event.target).attr('bgcolor', 'white');
+      });
   }
 }
 
