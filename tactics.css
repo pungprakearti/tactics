@@ -7,3 +7,10 @@ td {
   height: 32px;
   border: 1px solid gray;
 }
+
+.DPS {
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: blue;
+}
