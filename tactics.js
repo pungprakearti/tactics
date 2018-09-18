@@ -47,7 +47,7 @@ class Tactics {
     return this.boardJS;
   }
 
-  //create starting characters
+  //create starting characters JS
   makeChars() {
     //set bottom row starting from left as spawn points for characters
     this.DPSpos = [this.boardJS.length - 1, 0];
@@ -58,17 +58,28 @@ class Tactics {
     this.boardJS[this.boardJS.length - 1][2] = 'HEAL';
   }
 
+  //creates characters on HTML board using coordinates from DPSpos,
+  //  TANKpos, and HEALpos.
   placeCharsHTML() {
-    let chars = ['DPS', 'TANK', 'HEAL'];
-    let charsPOS = ['DPSpos', 'TANKpos', 'HEALpos'];
-    let char = ''
+    let charNamesToRemove = ['DPS', 'TANK', 'HEAL'];
+    let charsPOS = [this.DPSpos, this.TANKpos, this.HEALpos];
+    let posOnBoard;
     for (let i = 0; i < chars.length; i++) {
-      $(`.${chars[i]}`).remove();
-      //char = WORK ON THIS HERE. 
-      $(`#${this.(charsPOS[i])[0]}-${this.(charsPOS[i])[1]}`).append(
-        $('<div>').attr('class', 'DPS')
-      );
+      //remove current char
+      $(`.${charNamesToRemove[i]}`).remove();
+
+      //append char to correct position on the board
+      posOnBoard = `#${charsPOS[i][0]}-${charsPOS[i][1]}`;
+      $(posOnBoard).append($('<div>').attr('class', chars[i]));
     }
+  }
+
+  //on click
+  //path to farthest possible cell per character
+
+  //test with hover to highlight cell
+  test() {
+    $('.board').on('mouseover', 'td', function() {});
   }
 }
 

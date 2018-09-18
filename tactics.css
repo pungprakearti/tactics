@@ -14,3 +14,17 @@ td {
   border-radius: 15px;
   background-color: blue;
 }
+
+.TANK {
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: rgb(0, 217, 255);
+}
+
+.HEAL {
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: green;
+}
