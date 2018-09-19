@@ -14,6 +14,7 @@ class Tactics {
     this.makeChars();
     this.placeCharsHTML();
     this.test();
+    this.pathing();
   }
 
   //create HTML game grid and runs the function to create the JS board.
@@ -77,12 +78,18 @@ class Tactics {
 
   //on click
   //path to farthest possible cell per character
+  //longest distance go straight until can diagonal, then diagonal
+  pathing() {
+    // console.log(this.DPSpos, this.test().mousePOS);
+  }
 
   //test with hover to highlight cell
   test() {
+    let mousePOS;
     $('.board')
       .on('mouseenter', 'td', function(event) {
         $(event.target).attr('bgcolor', 'orange');
+        mousePOS = $(event.target).attr('id');
       })
       .on('mouseleave', 'td', function(event) {
         $(event.target).attr('bgcolor', 'white');
@@ -91,3 +98,59 @@ class Tactics {
 }
 
 new Tactics();
+
+function pathing() {
+  let testCharPOS = '0-0';
+  let testCharEndPOS = '8-20';
+  let start = testCharPOS.split('-');
+  let end = testCharEndPOS.split('-');
+  let vDist = 0;
+  let hDist = 0;
+  let direction = ['v', 'h'];
+
+  //find direction to travel
+  //vertical check
+  if (start[0] >= end[0]) {
+    vDist = start[0] - end[0];
+    direction[0] = 'u';
+  } else {
+    vDist = end[0] - start[0];
+    direction[0] = 'd';
+  }
+
+  //horizontal check
+  if (start[1] >= end[1]) {
+    hDist = start[1] - end[1];
+    direction[1] = 'l';
+  } else {
+    hDist = end[1] - start[1];
+    direction[1] = 'r';
+  }
+  console.log(`direction = ${direction[0]}${direction[1]}`);
+
+  //find longest stretch(vertically or horizontally)
+  if (vDist >= hDist) {
+    //highlight vertical to diagonal
+    console.log('vertical is longer');
+  } else {
+    //highlight horizontal to diagonal
+    console.log('horizontal is longer');
+    for (let i = start[1]; i <= start[1] + (hDist - vDist); i++) {
+      $(`#${start[0]}-${i}`).attr('bgcolor', 'yellow');
+    }
+    //diagonal to end - Right and Down
+    let k = 0;
+    for (let j = start[1] + (hDist - vDist); j < end[1]; j++) {
+      //console.log(`#${+start[0] + k}-${+j + 1}`); //right
+      $(`#${+start[0] + k}-${+j + 1}`).attr('bgcolor', 'yellow');
+      k++;
+      //console.log(`#${+start[0] + k}-${+j + 1}`); //down
+      $(`#${+start[0] + k}-${+j + 1}`).attr('bgcolor', 'yellow');
+    }
+  }
+
+  $(`#${start[0]}-${start[1]}`).attr('bgcolor', 'green');
+  $(`#${end[0]}-${end[1]}`).attr('bgcolor', 'red');
+}
+
+pathing();
