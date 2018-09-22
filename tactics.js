@@ -101,10 +101,15 @@ new Tactics();
 
 // determine path by going longest straight and then diagonal to end
 function pathing() {
-  let testCharPOS = '8-20';
-  let testCharEndPOS = '0-0';
+  let testCharPOS = '8-17';
+  let testCharEndPOS = '3-19';
   let start = testCharPOS.split('-');
   let end = testCharEndPOS.split('-');
+  let curPOS = testCharPOS.split('-');
+  start[0] = +start[0];
+  start[1] = +start[1];
+  end[0] = +end[0];
+  end[1] = +end[1];
   let vDist = 0;
   let hDist = 0;
   let direction = ['v', 'h'];
@@ -135,11 +140,25 @@ function pathing() {
   if (vDist >= hDist) {
     //highlight vertical to diagonal
     console.log('vertical is longer');
+    if (direction[0] === 'u') {
+      for (let i = start[0]; i >= start[0] + (hDist - vDist); i--) {
+        curPOS[0] = i;
+        $(`#${i}-${start[1]}`).attr('bgcolor', 'yellow');
+      }
+    }
+
+    if (direction[0] === 'd') {
+      for (let i = start[0]; i <= Math.abs(start[0] + (hDist - vDist)); i++) {
+        curPOS[0] = i;
+        $(`#${i}-${start[1]}`).attr('bgcolor', 'yellow');
+      }
+    }
   } else {
     //highlight horizontal to diagonal
     console.log('horizontal is longer');
     if (direction[1] === 'r') {
       for (let i = start[1]; i <= start[1] + (hDist - vDist); i++) {
+        curPOS[1] = i;
         $(`#${start[0]}-${i}`).attr('bgcolor', 'yellow');
       }
     }
@@ -147,57 +166,33 @@ function pathing() {
     if (direction[1] === 'l') {
       console.log(hDist, vDist);
       for (let i = start[1]; i >= start[1] - (hDist - vDist); i--) {
+        curPOS[1] = i;
         $(`#${start[0]}-${i}`).attr('bgcolor', 'yellow');
       }
     }
+  }
 
-    //move diagonal       //NEED TO FIX DIAGONALS and NEED VERTICAL STRAIGHT MOVEMENT
-    //Right and Down
-    if (direction[0] === 'd' && direction[1] === 'r') {
-      let k = 0;
-      for (let j = start[1] + (hDist - vDist); j < end[1]; j++) {
-        //right
-        $(`#${+start[0] + k}-${+j + 1}`).attr('bgcolor', 'yellow');
-        k++;
-        //down
-        $(`#${+start[0] + k}-${+j + 1}`).attr('bgcolor', 'yellow');
-      }
+  //Up and Left
+  if (direction[0] === 'u' && direction[1] === 'l') {
+    let k = 0;
+    for (let v = curPOS[0]; v >= end[0]; v--) {
+      //up
+      $(`#${v}-${curPOS[1] + k}`).attr('bgcolor', 'yellow');
+      k--;
+      //left
+      $(`#${v}-${curPOS[1] + k}`).attr('bgcolor', 'yellow');
     }
+  }
 
-    //Right and Up
-    if (direction[0] === 'u' && direction[1] === 'r') {
-      let k = 0;
-      for (let j = start[1] + (hDist - vDist); j < end[1]; j++) {
-        //right
-        $(`#${+start[0] - k}-${+j + 1}`).attr('bgcolor', 'yellow');
-        k++;
-        //down
-        $(`#${+start[0] - k}-${+j + 1}`).attr('bgcolor', 'yellow');
-      }
-    }
-
-    //Left and Down
-    if (direction[0] === 'd' && direction[1] === 'l') {
-      let k = 0;
-      for (let j = start[1] + (hDist - vDist); j < end[1]; j++) {
-        //right
-        $(`#${+start[0] + k}-${+j + 1}`).attr('bgcolor', 'yellow');
-        k++;
-        //down
-        $(`#${+start[0] + k}-${+j + 1}`).attr('bgcolor', 'yellow');
-      }
-    }
-
-    //Left and Up
-    if (direction[0] === 'u' && direction[1] === 'l') {
-      let k = 0;
-      for (let j = start[1] + (hDist - vDist); j < end[1]; j++) {
-        //right
-        $(`#${+start[0] + k}-${+j + 1}`).attr('bgcolor', 'yellow');
-        k++;
-        //down
-        $(`#${+start[0] + k}-${+j + 1}`).attr('bgcolor', 'yellow');
-      }
+  //Up and Right
+  if (direction[0] === 'u' && direction[1] === 'r') {
+    let k = 0;
+    for (let v = curPOS[0]; v > end[0]; v--) {
+      //up
+      $(`#${v}-${curPOS[1] + k}`).attr('bgcolor', 'yellow');
+      k++;
+      //right
+      $(`#${v}-${curPOS[1] + k}`).attr('bgcolor', 'yellow');
     }
   }
 
@@ -208,8 +203,9 @@ function pathing() {
 pathing();
 
 /*
-4 diagonals
+instead of 4 diagonals, maybe ,go horizontal first, then vertical
+lots of problems with diagonal
 
-
+move a marker for the player position
 
 */
