@@ -13,7 +13,6 @@ class Tactics {
     this.makeBoardJS();
     this.makeChars();
     this.placeCharsHTML();
-    this.test();
     this.pathing();
   }
 
@@ -82,19 +81,6 @@ class Tactics {
   pathing() {
     // console.log(this.DPSpos, this.test().mousePOS);
   }
-
-  //test with hover to highlight cell
-  test() {
-    let mousePOS;
-    $('.board')
-      .on('mouseenter', 'td', function(event) {
-        $(event.target).attr('bgcolor', 'orange');
-        mousePOS = $(event.target).attr('id');
-      })
-      .on('mouseleave', 'td', function(event) {
-        $(event.target).attr('bgcolor', 'white');
-      });
-  }
 }
 
 new Tactics();
@@ -102,10 +88,12 @@ new Tactics();
 // determine path by going longest straight and then diagonal to end
 function pathing() {
   let testCharPOS = '8-17';
-  let testCharEndPOS = '3-19';
+  let testCharEndPOS = mousePOS; //'3-19';
   let start = testCharPOS.split('-');
   let end = testCharEndPOS.split('-');
   let curPOS = testCharPOS.split('-');
+  curPOS[0] = +curPOS[0];
+  curPOS[1] = +curPOS[1];
   start[0] = +start[0];
   start[1] = +start[1];
   end[0] = +end[0];
@@ -132,22 +120,23 @@ function pathing() {
     hDist = end[1] - start[1];
     direction[1] = 'r';
   }
-  console.log(`direction = ${direction[0]}${direction[1]}`);
+  // console.log(`direction = ${direction[0]}${direction[1]}`);
+
+  //clear previous highlighted divs
+  $('td').attr('bgcolor', 'white');
 
   //move straight
   //find longest stretch(vertically or horizontally)
   //move horizontal to diagonal
   if (vDist >= hDist) {
     //highlight vertical to diagonal
-    console.log('vertical is longer');
+    // console.log('vertical is longer');
     if (direction[0] === 'u') {
       for (let i = start[0]; i >= start[0] + (hDist - vDist); i--) {
         curPOS[0] = i;
         $(`#${i}-${start[1]}`).attr('bgcolor', 'yellow');
       }
-    }
-
-    if (direction[0] === 'd') {
+    } else {
       for (let i = start[0]; i <= Math.abs(start[0] + (hDist - vDist)); i++) {
         curPOS[0] = i;
         $(`#${i}-${start[1]}`).attr('bgcolor', 'yellow');
@@ -155,16 +144,14 @@ function pathing() {
     }
   } else {
     //highlight horizontal to diagonal
-    console.log('horizontal is longer');
+    // console.log('horizontal is longer');
     if (direction[1] === 'r') {
       for (let i = start[1]; i <= start[1] + (hDist - vDist); i++) {
         curPOS[1] = i;
         $(`#${start[0]}-${i}`).attr('bgcolor', 'yellow');
       }
-    }
-
-    if (direction[1] === 'l') {
-      console.log(hDist, vDist);
+    } else {
+      // console.log(hDist, vDist);
       for (let i = start[1]; i >= start[1] - (hDist - vDist); i--) {
         curPOS[1] = i;
         $(`#${start[0]}-${i}`).attr('bgcolor', 'yellow');
@@ -175,7 +162,7 @@ function pathing() {
   //Up and Left
   if (direction[0] === 'u' && direction[1] === 'l') {
     let k = 0;
-    for (let v = curPOS[0]; v >= end[0]; v--) {
+    for (let v = curPOS[0]; v > end[0]; v--) {
       //up
       $(`#${v}-${curPOS[1] + k}`).attr('bgcolor', 'yellow');
       k--;
@@ -196,16 +183,53 @@ function pathing() {
     }
   }
 
+  //Down and Left //<------------- CREATE THIS
+  if (direction[0] === 'u' && direction[1] === 'r') {
+    let k = 0;
+    for (let v = curPOS[0]; v > end[0]; v--) {
+      //up
+      $(`#${v}-${curPOS[1] + k}`).attr('bgcolor', 'yellow');
+      k++;
+      //right
+      $(`#${v}-${curPOS[1] + k}`).attr('bgcolor', 'yellow');
+    }
+  }
+
   $(`#${start[0]}-${start[1]}`).attr('bgcolor', 'green');
   $(`#${end[0]}-${end[1]}`).attr('bgcolor', 'red');
 }
 
-pathing();
+// pathing();
+
+let mousePOS;
+
+//test with hover to highlight cell
+function getMousePOS() {
+  $('.board')
+    .on('mouseenter', 'td', function(event) {
+      $(event.target).attr('bgcolor', 'orange');
+      mousePOS = $(event.target).attr('id');
+      console.log(mousePOS);
+      pathing();
+    })
+    .on('mouseleave', 'td', function(event) {
+      $(event.target).attr('bgcolor', 'white');
+    });
+}
+
+getMousePOS();
 
 /*
-instead of 4 diagonals, maybe ,go horizontal first, then vertical
-lots of problems with diagonal
+6-14 mousePOS
+8-17 origin
 
-move a marker for the player position
+at 6-15 break
+
+v is 
+end[0] is 15
+
+
+
+
 
 */
