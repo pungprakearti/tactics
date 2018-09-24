@@ -120,7 +120,7 @@ function pathing() {
     hDist = end[1] - start[1];
     direction[1] = 'r';
   }
-  // console.log(`direction = ${direction[0]}${direction[1]}`);
+  console.log(`direction = ${direction[0]}${direction[1]}`);
 
   //clear previous highlighted divs
   $('td').attr('bgcolor', 'white');
@@ -137,8 +137,10 @@ function pathing() {
         $(`#${i}-${start[1]}`).attr('bgcolor', 'yellow');
       }
     } else {
-      for (let i = start[0]; i <= Math.abs(start[0] + (hDist - vDist)); i++) {
+      console.log('working here');
+      for (let i = start[0]; i <= start[0] + vDist - hDist; i++) {
         curPOS[0] = i;
+        console.log(curPOS[0]);
         $(`#${i}-${start[1]}`).attr('bgcolor', 'yellow');
       }
     }
@@ -151,7 +153,6 @@ function pathing() {
         $(`#${start[0]}-${i}`).attr('bgcolor', 'yellow');
       }
     } else {
-      // console.log(hDist, vDist);
       for (let i = start[1]; i >= start[1] - (hDist - vDist); i--) {
         curPOS[1] = i;
         $(`#${start[0]}-${i}`).attr('bgcolor', 'yellow');
@@ -183,10 +184,22 @@ function pathing() {
     }
   }
 
-  //Down and Left //<------------- CREATE THIS
-  if (direction[0] === 'u' && direction[1] === 'r') {
+  //Down and Left
+  if (direction[0] === 'd' && direction[1] === 'l') {
     let k = 0;
-    for (let v = curPOS[0]; v > end[0]; v--) {
+    for (let v = curPOS[0]; v < end[0]; v++) {
+      //up
+      $(`#${v}-${curPOS[1] - k}`).attr('bgcolor', 'yellow');
+      k++;
+      //right
+      $(`#${v}-${curPOS[1] - k}`).attr('bgcolor', 'yellow');
+    }
+  }
+
+  //Down and Right
+  if (direction[0] === 'd' && direction[1] === 'r') {
+    let k = 0;
+    for (let v = curPOS[0]; v < end[0]; v++) {
       //up
       $(`#${v}-${curPOS[1] + k}`).attr('bgcolor', 'yellow');
       k++;
@@ -220,16 +233,9 @@ function getMousePOS() {
 getMousePOS();
 
 /*
-6-14 mousePOS
-8-17 origin
-
-at 6-15 break
-
-v is 
-end[0] is 15
-
-
-
+Pathing works
+Need to try moving the character now.
+Max move distance variable needs to be created and implemented
 
 
 */
