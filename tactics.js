@@ -2,18 +2,17 @@
 A tactics game based on my love of x-com
 */
 class Tactics {
-  constructor(width = 36, height = 16, boardJS, DPSpos, TANKpos, HEALpos) {
+  constructor(width = 36, height = 16) {
     this.WIDTH = width;
     this.HEIGHT = height;
     this.boardJS = [];
-    this.DPSpos = [];
-    this.TANKpos = [];
-    this.HEALpos = [];
+    this.DPSpos = `${height - 1}-${width - 1}`;
+    // this.TANKpos = [];
+    // this.HEALpos = [];
     this.makeBoard();
     this.makeBoardJS();
-    this.makeChars();
-    this.placeCharsHTML();
-    this.pathing();
+    // this.makeChars();
+    // this.placeCharsHTML();
   }
 
   //create HTML game grid and runs the function to create the JS board.
@@ -49,49 +48,47 @@ class Tactics {
   }
 
   //create starting characters JS
-  makeChars() {
-    //set bottom row starting from left as spawn points for characters
-    this.DPSpos = [this.boardJS.length - 1, 0];
-    this.TANKpos = [this.boardJS.length - 1, 1];
-    this.HEALpos = [this.boardJS.length - 1, 2];
-    this.boardJS[this.boardJS.length - 1][0] = 'DPS';
-    this.boardJS[this.boardJS.length - 1][1] = 'TANK';
-    this.boardJS[this.boardJS.length - 1][2] = 'HEAL';
-  }
+  // makeChars() {
+  //   //set bottom row starting from left as spawn points for characters
+  //   this.DPSpos = [this.boardJS.length - 1, 0];
+  //   this.TANKpos = [this.boardJS.length - 1, 1];
+  //   this.HEALpos = [this.boardJS.length - 1, 2];
+  //   this.boardJS[this.boardJS.length - 1][0] = 'DPS';
+  //   this.boardJS[this.boardJS.length - 1][1] = 'TANK';
+  //   this.boardJS[this.boardJS.length - 1][2] = 'HEAL';
+  // }
 
   //creates characters on HTML board using coordinates from DPSpos,
   //  TANKpos, and HEALpos.
-  placeCharsHTML() {
-    let charNames = ['DPS', 'TANK', 'HEAL'];
-    let charsPOS = [this.DPSpos, this.TANKpos, this.HEALpos];
-    let posOnBoard;
-    for (let i = 0; i < charNames.length; i++) {
-      //remove current char
-      $(`.${charNames[i]}`).remove();
+  // placeCharsHTML() {
+  //   let charNames = ['DPS', 'TANK', 'HEAL'];
+  //   let charsPOS = [this.DPSpos, this.TANKpos, this.HEALpos];
+  //   let posOnBoard;
+  //   for (let i = 0; i < charNames.length; i++) {
+  //     //remove current char
+  //     $(`.${charNames[i]}`).remove();
 
-      //append char to correct position on the board
-      posOnBoard = `#${charsPOS[i][0]}-${charsPOS[i][1]}`;
-      $(posOnBoard).append($('<div>').attr('class', charNames[i]));
-    }
-  }
-
-  //on click
-  //path to farthest possible cell per character
-  //longest distance go straight until can diagonal, then diagonal
-  pathing() {
-    // console.log(this.DPSpos, this.test().mousePOS);
-  }
+  //     //append char to correct position on the board
+  //     posOnBoard = `#${charsPOS[i][0]}-${charsPOS[i][1]}`;
+  //     $(posOnBoard).append($('<div>').attr('class', charNames[i]));
+  //   }
+  // }
 }
 
-new Tactics();
+let game = new Tactics();
+
+let curPOS;
 
 // determine path by going longest straight and then diagonal to end
 function pathing() {
-  let testCharPOS = '8-17';
-  let testCharEndPOS = mousePOS; //'3-19';
-  let start = testCharPOS.split('-');
-  let end = testCharEndPOS.split('-');
-  let curPOS = testCharPOS.split('-');
+  // let testCharPOS = '8-17';
+  // let testCharEndPOS = mousePOS; //'3-19';
+  // let start = testCharPOS.split('-');
+  // let end = testCharEndPOS.split('-');
+  // let curPOS = testCharPOS.split('-');
+  let start = game.DPSpos.split('-');
+  let end = mousePOS.split('-');
+  curPOS = game.DPSpos.split('-');
   curPOS[0] = +curPOS[0];
   curPOS[1] = +curPOS[1];
   start[0] = +start[0];
@@ -120,7 +117,7 @@ function pathing() {
     hDist = end[1] - start[1];
     direction[1] = 'r';
   }
-  console.log(`direction = ${direction[0]}${direction[1]}`);
+  // console.log(`direction = ${direction[0]}${direction[1]}`);
 
   //clear previous highlighted divs
   $('td').attr('bgcolor', 'white');
@@ -137,10 +134,8 @@ function pathing() {
         $(`#${i}-${start[1]}`).attr('bgcolor', 'yellow');
       }
     } else {
-      console.log('working here');
       for (let i = start[0]; i <= start[0] + vDist - hDist; i++) {
         curPOS[0] = i;
-        console.log(curPOS[0]);
         $(`#${i}-${start[1]}`).attr('bgcolor', 'yellow');
       }
     }
@@ -208,11 +203,15 @@ function pathing() {
     }
   }
 
+  //set end as current position of character
+  curPOS[0] = end[0];
+  curPOS[1] = end[1];
+
   $(`#${start[0]}-${start[1]}`).attr('bgcolor', 'green');
   $(`#${end[0]}-${end[1]}`).attr('bgcolor', 'red');
-}
 
-// pathing();
+  movPlayer();
+}
 
 let mousePOS;
 
@@ -222,7 +221,7 @@ function getMousePOS() {
     .on('mouseenter', 'td', function(event) {
       $(event.target).attr('bgcolor', 'orange');
       mousePOS = $(event.target).attr('id');
-      console.log(mousePOS);
+      // console.log(mousePOS);
       pathing();
     })
     .on('mouseleave', 'td', function(event) {
@@ -230,12 +229,22 @@ function getMousePOS() {
     });
 }
 
+function movPlayer() {
+  $('.board').on('click', 'td', function(event) {
+    game.DPSpos = $(event.target).attr('id');
+
+    //clear previous highlighted divs
+    $('td').attr('bgcolor', 'white');
+
+    //place green color on new curPOS
+    $(`#${curPOS[0]}-${curPOS[1]}`).attr('bgcolor', 'green');
+  });
+}
+
 getMousePOS();
 
 /*
 Pathing works
-Need to try moving the character now.
+Character movement works
 Max move distance variable needs to be created and implemented
-
-
 */
