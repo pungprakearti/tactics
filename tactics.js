@@ -1,94 +1,109 @@
 /*
 A tactics game based on my love of x-com
 */
+//default 36 x 16 room
 class Tactics {
-  constructor(width = 36, height = 16) {
+  constructor(width = 10, height = 10) {
     this.WIDTH = width;
     this.HEIGHT = height;
     this.boardJS = [];
-    this.DPSpos = `${height - 1}-${width - 1}`;
-    // this.TANKpos = [];
-    // this.HEALpos = [];
-    this.makeBoard();
+    this.CHAR_START_POS = `${height - 1}-${width - 1}`;
+    this.cellsToBeEmpty;
     this.makeBoardJS();
-    // this.makeChars();
-    // this.placeCharsHTML();
+    // this.makeBoard();
+    console.log('created new board');
   }
 
-  //create HTML game grid and runs the function to create the JS board.
-  //value in each cell represents what is in it.
-  // Player, Enemy, Obstacle, and defense direction
-  makeBoard() {
-    let w = 0;
-    let h = 0;
-    let boardDOM = document.querySelector('.board');
-    //loop to create height
-    for (let i = 0; i < this.HEIGHT; i++) {
-      let boardRow = document.createElement('tr');
-      //loop to create width
-      for (let j = 0; j < this.WIDTH; j++) {
-        let boardCol = document.createElement('td');
-        boardCol.setAttribute('id', `${h}-${w}`);
-        boardRow.append(boardCol);
-        w++;
-      }
-      boardDOM.append(boardRow);
-      h++;
-      w = 0;
-    }
-  }
-
-  //create JS board in an array
-  //boardJS[h][w]
   makeBoardJS() {
+    /*
+    create JS board in a nested array
+    */
+
+    //create empty board
     for (let i = 0; i < this.HEIGHT; i++) {
       this.boardJS.push(new Array(this.WIDTH).fill(null));
+    }
+
+    //fill 15% of the board with walls
+    let wallsToMake = Math.floor(this.HEIGHT * this.WIDTH * 0.15);
+
+    //This is the number of cells that needs to be empty when checked
+    //  with the flood fill script to ensure that characters can go into
+    //  every cell on the board and not be blocked by walls
+    this.cellsToBeEmpty = this.HEIGHT * this.WIDTH - wallsToMake;
+
+    //randomly place walls by setting cell to 'wall'
+    let wallCount = 0;
+    let randV;
+    let randH;
+    while (wallCount < wallsToMake) {
+      randV = getRandomInt(0, this.HEIGHT);
+      randH = getRandomInt(0, this.WIDTH);
+
+      //prevent wall from being placed in the character's position
+      while (
+        randV === +this.CHAR_START_POS.split('-')[0] &&
+        randH === +this.CHAR_START_POS.split('-')[1]
+      ) {
+        randV = getRandomInt(0, this.HEIGHT);
+        randH = getRandomInt(0, this.WIDTH);
+      }
+
+      //If null then create wall in cell
+      if (this.boardJS[randV][randH] === null) {
+        this.boardJS[randV][randH] = 'wall';
+        wallCount++;
+      }
     }
     return this.boardJS;
   }
 
-  //create starting characters JS
-  // makeChars() {
-  //   //set bottom row starting from left as spawn points for characters
-  //   this.DPSpos = [this.boardJS.length - 1, 0];
-  //   this.TANKpos = [this.boardJS.length - 1, 1];
-  //   this.HEALpos = [this.boardJS.length - 1, 2];
-  //   this.boardJS[this.boardJS.length - 1][0] = 'DPS';
-  //   this.boardJS[this.boardJS.length - 1][1] = 'TANK';
-  //   this.boardJS[this.boardJS.length - 1][2] = 'HEAL';
-  // }
+  makeBoard() {
+    /*
+    create HTML game grid
+    */
 
-  //creates characters on HTML board using coordinates from DPSpos,
-  //  TANKpos, and HEALpos.
-  // placeCharsHTML() {
-  //   let charNames = ['DPS', 'TANK', 'HEAL'];
-  //   let charsPOS = [this.DPSpos, this.TANKpos, this.HEALpos];
-  //   let posOnBoard;
-  //   for (let i = 0; i < charNames.length; i++) {
-  //     //remove current char
-  //     $(`.${charNames[i]}`).remove();
+    let h = 0;
+    let v = 0;
 
-  //     //append char to correct position on the board
-  //     posOnBoard = `#${charsPOS[i][0]}-${charsPOS[i][1]}`;
-  //     $(posOnBoard).append($('<div>').attr('class', charNames[i]));
-  //   }
-  // }
+    //remove any previous board elements
+    $('tr').remove();
+    $('td').remove();
+
+    let boardDOM = document.querySelector('.board');
+
+    //loop to create height
+    for (let i = 0; i < this.HEIGHT; i++) {
+      let boardRow = document.createElement('tr');
+
+      //loop to create width
+      for (let j = 0; j < this.WIDTH; j++) {
+        let boardCol = document.createElement('td');
+        boardCol.setAttribute('id', `${v}-${h}`);
+
+        //check if wall in boardJS. If wall, make black
+        if (this.boardJS[v][h] === 'wall') {
+          boardCol.setAttribute('bgcolor', 'black');
+        }
+
+        boardRow.append(boardCol);
+        h++;
+      }
+      boardDOM.append(boardRow);
+      v++;
+      h = 0;
+    }
+  }
 }
 
 let game = new Tactics();
-
 let curPOS;
 
 // determine path by going longest straight and then diagonal to end
 function pathing() {
-  // let testCharPOS = '8-17';
-  // let testCharEndPOS = mousePOS; //'3-19';
-  // let start = testCharPOS.split('-');
-  // let end = testCharEndPOS.split('-');
-  // let curPOS = testCharPOS.split('-');
-  let start = game.DPSpos.split('-');
+  let start = game.CHAR_START_POS.split('-');
   let end = mousePOS.split('-');
-  curPOS = game.DPSpos.split('-');
+  curPOS = game.CHAR_START_POS.split('-');
   curPOS[0] = +curPOS[0];
   curPOS[1] = +curPOS[1];
   start[0] = +start[0];
@@ -231,7 +246,7 @@ function getMousePOS() {
 
 function movPlayer() {
   $('.board').on('click', 'td', function(event) {
-    game.DPSpos = $(event.target).attr('id');
+    game.CHAR_START_POS = $(event.target).attr('id');
 
     //clear previous highlighted divs
     $('td').attr('bgcolor', 'white');
@@ -241,10 +256,112 @@ function movPlayer() {
   });
 }
 
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+let cellCount = 0;
+let finishCount = 0;
+function floodFill(posArr, cb) {
+  let delay = 0; // delay to show floodfill in milliseconds
+
+  //check for null cell
+  if (game.boardJS[posArr[0]][posArr[1]] === null) {
+    //set cell as empty and count it
+    game.boardJS[posArr[0]][posArr[1]] = 'empty';
+    cellCount++;
+    $(`#${posArr[0]}-${posArr[1]}`).text(cellCount);
+    $(`#${posArr[0]}-${posArr[1]}`).attr('bgcolor', 'lightblue');
+
+    //create flood fill checks in 4 surrounding cells
+    //up
+    if (posArr[0] > 0 && game.boardJS[posArr[0] - 1][posArr[1]] === null) {
+      setTimeout(function() {
+        floodFill([posArr[0] - 1, posArr[1]], countFinishedFn);
+      }, delay);
+      //right
+    }
+    if (
+      posArr[1] < game.WIDTH - 1 &&
+      game.boardJS[posArr[0]][posArr[1] + 1] === null
+    ) {
+      setTimeout(function() {
+        floodFill([posArr[0], posArr[1] + 1], countFinishedFn);
+      }, delay);
+      //down
+    }
+    if (
+      posArr[0] < game.HEIGHT - 1 &&
+      game.boardJS[posArr[0] + 1][posArr[1]] === null
+    ) {
+      setTimeout(function() {
+        floodFill([posArr[0] + 1, posArr[1]], countFinishedFn);
+      }, delay);
+      //left
+    }
+    if (posArr[1] > 0 && game.boardJS[posArr[0]][posArr[1] - 1] === null) {
+      setTimeout(function() {
+        floodFill([posArr[0], posArr[1] - 1], countFinishedFn);
+      }, delay);
+    }
+
+    return cb();
+  } else {
+    return;
+  }
+}
+
+//CHECK THIS WITHOUT THE SETTIMEOUT <--------------------------------------
+function countFinishedFn() {
+  setTimeout(function() {
+    finishCount++;
+    // console.log('cellCount', cellCount, 'finishCount', finishCount);
+    if (cellCount === finishCount) {
+      // console.log(game);
+
+      //if the cellCount doesn't match finishCount, that means there is
+      //at least one blocked cell, so recreate the board
+      if (cellCount !== game.cellsToBeEmpty) {
+        game = new Tactics(); // probably don't have to remake the entire game class in order to make a new random map
+        cellCount = 0;
+        finishCount = 0;
+        floodFill(
+          [
+            game.CHAR_START_POS.split('-')[0],
+            game.CHAR_START_POS.split('-')[1]
+          ],
+          countFinishedFn
+        );
+
+        //Check is good, make the HTML board
+      } else {
+        game.makeBoard();
+      }
+    }
+  }, 0);
+}
+
 getMousePOS();
 
+floodFill(
+  [game.CHAR_START_POS.split('-')[0], game.CHAR_START_POS.split('-')[1]],
+  countFinishedFn
+);
+
 /*
-Pathing works
-Character movement works
-Max move distance variable needs to be created and implemented
+Need to redraw board after every turn
+
+don't draw until boardJS is good.
+
+
+player movement
+
+drawing board
+
+board and coords
+
+
+
 */
