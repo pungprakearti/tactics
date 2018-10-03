@@ -1,35 +1,55 @@
 /*
 A tactics game based on my love of x-com
 */
+
 //default 36 x 16 room
-class Tactics {
+class Map {
+  /*
+  This class contains the map creation and checking
+  */
+
   constructor(width = 10, height = 10) {
     this.WIDTH = width;
     this.HEIGHT = height;
-    this.boardJS = [];
-    this.CHAR_START_POS = `${height - 1}-${width - 1}`;
+    this.mapJS;
+    // this.CHAR_START_POS = `${height - 1}-${width - 1}`;
     this.cellsToBeEmpty;
-    this.makeBoardJS();
-    // this.makeBoard();
-    console.log('created new board');
+
+    this.cellCount = 0;
+    this.finishCount = 0;
+
+    // this.makeMapJS();
+    // console.log('Making a map in JS');
   }
 
-  makeBoardJS() {
+  makeMapJS(playerPosArr) {
     /*
-    create JS board in a nested array
+    create JS map in a nested array
     */
 
-    //create empty board
+    //emtpy array
+    this.mapJS = [];
+
+    /*
+    create empty Map
+
+    5x5 - mapJS[y][x]
+    [[null,null,null,null,null],
+    [null,null,null,null,null],
+    [null,null,null,null,null],
+    [null,null,null,null,null],
+    [null,null,null,null,null]]
+    */
     for (let i = 0; i < this.HEIGHT; i++) {
-      this.boardJS.push(new Array(this.WIDTH).fill(null));
+      this.mapJS.push(new Array(this.WIDTH).fill(null));
     }
 
-    //fill 15% of the board with walls
+    //fill 15% of the Map with walls
     let wallsToMake = Math.floor(this.HEIGHT * this.WIDTH * 0.15);
 
     //This is the number of cells that needs to be empty when checked
     //  with the flood fill script to ensure that characters can go into
-    //  every cell on the board and not be blocked by walls
+    //  every cell on the Map and not be blocked by walls
     this.cellsToBeEmpty = this.HEIGHT * this.WIDTH - wallsToMake;
 
     //randomly place walls by setting cell to 'wall'
@@ -41,69 +61,87 @@ class Tactics {
       randH = getRandomInt(0, this.WIDTH);
 
       //prevent wall from being placed in the character's position
-      while (
-        randV === +this.CHAR_START_POS.split('-')[0] &&
-        randH === +this.CHAR_START_POS.split('-')[1]
-      ) {
-        randV = getRandomInt(0, this.HEIGHT);
-        randH = getRandomInt(0, this.WIDTH);
+      //will eventually make this into a room <-------------------------
+      //in the future accept and array of character positions
+      for (let charPos in playerPosArr) {
+        //
+        while (
+          // randV === +this.CHAR_START_POS.split('-')[0] &&
+          // randH === +this.CHAR_START_POS.split('-')[1]
+          randV === charPos[1] &&
+          randH === charPos[0]
+        ) {
+          randV = getRandomInt(0, this.HEIGHT);
+          randH = getRandomInt(0, this.WIDTH);
+        }
       }
 
       //If null then create wall in cell
-      if (this.boardJS[randV][randH] === null) {
-        this.boardJS[randV][randH] = 'wall';
+      if (this.mapJS[randV][randH] === null) {
+        this.mapJS[randV][randH] = 'wall';
         wallCount++;
       }
     }
-    return this.boardJS;
+    console.log('Created map in JS');
+    return this.mapJS;
   }
 
-  makeBoard() {
+  makeMap() {
     /*
     create HTML game grid
     */
-
     let h = 0;
     let v = 0;
 
-    //remove any previous board elements
+    //remove any previous map elements
     $('tr').remove();
     $('td').remove();
 
-    let boardDOM = document.querySelector('.board');
+    let $map = $('.map');
 
     //loop to create height
     for (let i = 0; i < this.HEIGHT; i++) {
-      let boardRow = document.createElement('tr');
+      let $row = $('<tr>');
 
       //loop to create width
       for (let j = 0; j < this.WIDTH; j++) {
-        let boardCol = document.createElement('td');
-        boardCol.setAttribute('id', `${v}-${h}`);
+        let $col = $('<td>');
 
-        //check if wall in boardJS. If wall, make black
-        if (this.boardJS[v][h] === 'wall') {
-          boardCol.setAttribute('bgcolor', 'black');
+        //check if wall in mapJS. If wall, make black
+        if (this.mapJS[v][h] === 'wall') {
+          $col.attr({
+            id: `${v}-${h}`,
+            bgcolor: 'black'
+          });
+          //else make white
+        } else {
+          $col.attr({
+            id: `${v}-${h}`,
+            bgcolor: 'white'
+          });
         }
-
-        boardRow.append(boardCol);
+        $row.append($col);
         h++;
       }
-      boardDOM.append(boardRow);
+      $map.append($row);
       v++;
       h = 0;
     }
+    console.log('Created  map in HTML');
   }
 }
 
-let game = new Tactics();
-let curPOS;
+class Player {
+  constructor(x, y) {
+    this.curPOS = [x, y];
+  }
+}
 
 // determine path by going longest straight and then diagonal to end
 function pathing() {
-  let start = game.CHAR_START_POS.split('-');
+  let start = map.CHAR_START_POS.split('-');
   let end = mousePOS.split('-');
-  curPOS = game.CHAR_START_POS.split('-');
+  curPOS = map.CHAR_START_POS.split('-');
   curPOS[0] = +curPOS[0];
   curPOS[1] = +curPOS[1];
   start[0] = +start[0];
@@ -232,7 +270,7 @@ let mousePOS;
 
 //test with hover to highlight cell
 function getMousePOS() {
-  $('.board')
+  $('.map')
     .on('mouseenter', 'td', function(event) {
       $(event.target).attr('bgcolor', 'orange');
       mousePOS = $(event.target).attr('id');
@@ -245,8 +283,8 @@ function getMousePOS() {
 }
 
 function movPlayer() {
-  $('.board').on('click', 'td', function(event) {
-    game.CHAR_START_POS = $(event.target).attr('id');
+  $('.map').on('click', 'td', function(event) {
+    map.CHAR_START_POS = $(event.target).attr('id');
 
     //clear previous highlighted divs
     $('td').attr('bgcolor', 'white');
@@ -262,48 +300,46 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-let cellCount = 0;
-let finishCount = 0;
-function floodFill(posArr, cb) {
+function floodFill(map, posArr, cb) {
   let delay = 0; // delay to show floodfill in milliseconds
 
   //check for null cell
-  if (game.boardJS[posArr[0]][posArr[1]] === null) {
+  if (map.mapJS[posArr[0]][posArr[1]] === null) {
     //set cell as empty and count it
-    game.boardJS[posArr[0]][posArr[1]] = 'empty';
-    cellCount++;
-    $(`#${posArr[0]}-${posArr[1]}`).text(cellCount);
+    map.mapJS[posArr[0]][posArr[1]] = 'empty';
+    map.cellCount++;
+    $(`#${posArr[0]}-${posArr[1]}`).text(map.cellCount);
     $(`#${posArr[0]}-${posArr[1]}`).attr('bgcolor', 'lightblue');
 
     //create flood fill checks in 4 surrounding cells
     //up
-    if (posArr[0] > 0 && game.boardJS[posArr[0] - 1][posArr[1]] === null) {
+    if (posArr[0] > 0 && map.mapJS[posArr[0] - 1][posArr[1]] === null) {
       setTimeout(function() {
-        floodFill([posArr[0] - 1, posArr[1]], countFinishedFn);
+        floodFill(map, [posArr[0] - 1, posArr[1]], countFinished);
       }, delay);
       //right
     }
     if (
-      posArr[1] < game.WIDTH - 1 &&
-      game.boardJS[posArr[0]][posArr[1] + 1] === null
+      posArr[1] < map.WIDTH - 1 &&
+      map.mapJS[posArr[0]][posArr[1] + 1] === null
     ) {
       setTimeout(function() {
-        floodFill([posArr[0], posArr[1] + 1], countFinishedFn);
+        floodFill(map, [posArr[0], posArr[1] + 1], countFinished);
       }, delay);
       //down
     }
     if (
-      posArr[0] < game.HEIGHT - 1 &&
-      game.boardJS[posArr[0] + 1][posArr[1]] === null
+      posArr[0] < map.HEIGHT - 1 &&
+      map.mapJS[posArr[0] + 1][posArr[1]] === null
     ) {
       setTimeout(function() {
-        floodFill([posArr[0] + 1, posArr[1]], countFinishedFn);
+        floodFill(map, [posArr[0] + 1, posArr[1]], countFinished);
       }, delay);
       //left
     }
-    if (posArr[1] > 0 && game.boardJS[posArr[0]][posArr[1] - 1] === null) {
+    if (posArr[1] > 0 && map.mapJS[posArr[0]][posArr[1] - 1] === null) {
       setTimeout(function() {
-        floodFill([posArr[0], posArr[1] - 1], countFinishedFn);
+        floodFill(map, [posArr[0], posArr[1] - 1], countFinished);
       }, delay);
     }
 
@@ -313,55 +349,51 @@ function floodFill(posArr, cb) {
   }
 }
 
-//CHECK THIS WITHOUT THE SETTIMEOUT <--------------------------------------
-function countFinishedFn() {
+function countFinished(map) {
   setTimeout(function() {
-    finishCount++;
-    // console.log('cellCount', cellCount, 'finishCount', finishCount);
-    if (cellCount === finishCount) {
-      // console.log(game);
+    map.finishCount++;
 
+    if (map.cellCount === map.finishCount) {
       //if the cellCount doesn't match finishCount, that means there is
-      //at least one blocked cell, so recreate the board
-      if (cellCount !== game.cellsToBeEmpty) {
-        game = new Tactics(); // probably don't have to remake the entire game class in order to make a new random map
-        cellCount = 0;
-        finishCount = 0;
-        floodFill(
-          [
-            game.CHAR_START_POS.split('-')[0],
-            game.CHAR_START_POS.split('-')[1]
-          ],
-          countFinishedFn
-        );
-
-        //Check is good, make the HTML board
+      //at least one blocked cell, so recreate the map
+      if (map.cellCount !== map.cellsToBeEmpty) {
+        map.makeMapJS([player1]);
+        map.cellCount = 0;
+        map.finishCount = 0;
+        floodFill(map, player1.curPOS, countFinished);
+        //Check is good, make the HTML map
       } else {
-        game.makeBoard();
+        map.makeMap();
       }
     }
   }, 0);
 }
 
+/*
+START GAME HERE 
+ */
 getMousePOS();
 
-floodFill(
-  [game.CHAR_START_POS.split('-')[0], game.CHAR_START_POS.split('-')[1]],
-  countFinishedFn
-);
+//create map instance
+let map = new Map();
+
+//create player instances
+let player1 = new Player(0, map.HEIGHT - 1);
+
+map.makeMapJS([player1.curPOS]);
+
+console.log('map.finishCount', map.finishCount);
+
+floodFill(map, player1.curPOS, countFinished);
+
+// floodFill(
+//   [game.CHAR_START_POS.split('-')[0], game.CHAR_START_POS.split('-')[1]],
+//   countFinishedFn
+// );
 
 /*
-Need to redraw board after every turn
-
-don't draw until boardJS is good.
-
-
-player movement
-
-drawing board
-
-board and coords
-
-
-
+classes:
+Player - curPos, stats, movement
+Enemy - extend from Player
+Map - cellCount, finishCount, accepts Player start position, create JS map and draws HTML map
 */
